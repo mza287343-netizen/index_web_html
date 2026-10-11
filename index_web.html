@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blue Archive - Student Database</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ba-blue: #1288ff;
+      --ba-cyan: #00d2ff;
+      --ba-dark: #0f172a;
+      --ba-card-bg: rgba(255, 255, 255, 0.95);
+      --ba-border: #e2e8f0;
+      
+      /* Attack Types */
+      --type-explosive: #e63946;
+      --type-penetration: #e0a96d;
+      --type-mystic: #2a9d8f;
+      --type-sonic: #9d4edd;
+      
+      /* Defense Types */
+      --def-light: #e63946;
+      --def-heavy: #e0a96d;
+      --def-special: #2a9d8f;
+      --def-elastic: #9d4edd;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Exo 2', 'Noto Sans JP', sans-serif;
+      background: linear-gradient(135deg, #0b132b 0%, #1c2541 50%, #001233 100%);
+      color: #334155;
+      min-height: 100vh;
+      padding-bottom: 50px;
+    }
+
+    /* Header & Hero */
+    header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 3px solid var(--ba-cyan);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0, 210, 255, 0.15);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.5rem;
+      letter-spacing: 1px;
+    }
+
+    .logo-halo {
+      width: 28px;
+      height: 28px;
+      border: 3px solid var(--ba-cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--ba-cyan);
+      position: relative;
+    }
+
+    .logo-halo::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
+      background: var(--ba-cyan);
+      border-radius: 50%;
+    }
+
+    /* Container Controls */
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .controls {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 0.8rem 1.2rem;
+      border-radius: 8px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      background: rgba(15, 23, 42, 0.6);
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    .search-box input:focus {
+      border-color: var(--ba-cyan);
+      box-shadow: 0 0 12px rgba(0, 210, 255, 0.4);
+    }
+
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .filter-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.25s;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--ba-blue);
+      border-color: var(--ba-cyan);
+      box-shadow: 0 0 10px rgba(18, 136, 255, 0.5);
+    }
+
+    /* Student Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--ba-card-bg);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+      position: relative;
+      border: 2px solid transparent;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      border-color: var(--ba-cyan);
+      box-shadow: 0 15px 30px rgba(0, 210, 255, 0.25);
+    }
+
+    .card-header {
+      height: 180px;
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .avatar-svg {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      border: 3px solid var(--ba-cyan);
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.3);
+    }
+
+    .school-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(15, 23, 42, 0.8);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .card-body {
+      padding: 1.2rem;
+    }
+
+    .student-name {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 0.2rem;
+    }
+
+    .student-club {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .badges {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+    }
+
+    .badge-explosive { background: var(--type-explosive); }
+    .badge-penetration { background: var(--type-penetration); }
+    .badge-mystic { background: var(--type-mystic); }
+    .badge-sonic { background: var(--type-sonic); }
+
+    .badge-role {
+      background: #334155;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .modal {
+      background: #fff;
+      width: 100%;
+      max-width: 600px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      animation: modalIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes modalIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #fff;
+      padding: 1.5rem;
+      position: relative;
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 0.5rem;
+    }
+
+    .info-label {
+      font-weight: 700;
+      color: #64748b;
+    }
+
+    .info-value {
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .description {
+      background: #f8fafc;
+      padding: 1rem;
+      border-radius: 10px;
+      border-left: 4px solid var(--ba-blue);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #334155;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <div class="logo-halo"></div>
+      <span>SCHALE DATABASE</span>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Search & Filters -->
+    <div class="controls">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Cari nama murid, sekolah, atau klub...">
+      </div>
+      <div class="filter-group" id="schoolFilters">
+        <button class="filter-btn active" data-filter="all">Semua Sekolah</button>
+        <button class="filter-btn" data-filter="Abydos">Abydos</button>
+        <button class="filter-btn" data-filter="Gehenna">Gehenna</button>
+        <button class="filter-btn" data-filter="Trinity">Trinity</button>
+        <button class="filter-btn" data-filter="Millennium">Millennium</button>
+        <button class="filter-btn" data-filter="Hyakkiyako">Hyakkiyako</button>
+      </div>
+    </div>
+
+    <!-- Student Cards Grid -->
+    <div class="grid" id="studentGrid"></div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <button class="close-btn" id="closeModal">&times;</button>
+        <div id="modalAvatar"></div>
+        <div>
+          <h2 id="modalName" style="font-size: 1.8rem;">-</h2>
+          <p id="modalSchoolClub" style="color: var(--ba-cyan); font-weight: 600;">-</p>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="info-row">
+          <span class="info-label">Peran (Role)</span>
+          <span class="info-value" id="modalRole">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Tipe Serangan</span>
+          <span class="info-value" id="modalAttack">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Tipe Pertahanan</span>
+          <span class="info-value" id="modalDefense">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Senjata Utama</span>
+          <span class="info-value" id="modalWeapon">-</span>
+        </div>
+        <div>
+          <span class="info-label" style="display:block; margin-bottom: 0.5rem;">Keterangan & Profil</span>
+          <p class="description" id="modalDesc">-</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Data Karakter Blue Archive
+    const students = [
+      {
+        id: "shiroko",
+        name: "Sunaookami Shiroko",
+        school: "Abydos",
+        club: "Task Force Committee",
+        role: "Striker / Attacker",
+        attackType: "Explosive",
+        defenseType: "Light",
+        weapon: "Assault Rifle (WHITE FANG 465)",
+        description: "Murid kelas 2 di Abydos. Sangat menyukai olahraga sepeda dan selalu memikirkan ide-ide ekstrem (seperti merampok bank) demi melunasi hutang sekolahnya.",
+        color: "#38bdf8"
+      },
+      {
+        id: "hoshino",
+        name: "Takanashi Hoshino",
+        school: "Abydos",
+        club: "Task Force Committee",
+        role: "Striker / Tanker",
+        attackType: "Penetration",
+        defenseType: "Heavy",
+        weapon: "Shotgun (Eye of Horus)",
+        description: "Ketua Dewan Siswa Abydos. Terlihat malas dan suka tidur, namun dia adalah salah satu murid terkuat di Kivotos yang sangat melindungi juniornya.",
+        color: "#f472b6"
+      },
+      {
+        id: "arona",
+        name: "Arona",
+        school: "SCHALE",
+        club: "Main OS AI",
+        role: "Special / Support",
+        attackType: "Mystic",
+        defenseType: "Special",
+        weapon: "Shittim Chest Umbrella",
+        description: "Sistem AI utama di dalam Shittim Chest milik Sensei. Selalu ceria, siap membantu administrasi, walau kadang suka memberi gacha amplop biru.",
+        color: "#60a5fa"
+      },
+      {
+        id: "aru",
+        name: "Rikuhachima Aru",
+        school: "Gehenna",
+        club: "Problem Solver 68",
+        role: "Striker / Attacker",
+        attackType: "Explosive",
+        defenseType: "Light",
+        weapon: "Sniper Rifle (Wine Red Admin)",
+        description: "Pemimpin Problem Solver 68 yang berusaha keras terlihat seperti penjahat keras kepala (Outlaw), namun sebenarnya sangat ceroboh dan berhati lembut.",
+        color: "#f87171"
+      },
+      {
+        id: "yuuka",
+        name: "Hayase Yuuka",
+        school: "Millennium",
+        club: "Seminar",
+        role: "Striker / Tanker",
+        attackType: "Explosive",
+        defenseType: "Heavy",
+        weapon: "Submachine Gun (Logic & Reason)",
+        description: "Bendahara Seminar di Millennium Science School. Sangat mahir dalam matematika dan kalkulasi anggaran, sering menegur Sensei yang boros.",
+        color: "#818cf8"
+      },
+      {
+        id: "mika",
+        name: "Misono Mika",
+        school: "Trinity",
+        club: "Tea Party",
+        role: "Striker / Attacker",
+        attackType: "Penetration",
+        defenseType: "Light",
+        weapon: "Submachine Gun (Quinquaginta)",
+        description: "Mantan anggota Tea Party Trinity. Memiliki kekuatan fisik yang sangat dahsyat di balik penampilannya yang anggun bagaikan putri.",
+        color: "#f43f5e"
+      },
+      {
+        id: "alice",
+        name: "Tendou Aris (Alice)",
+        school: "Millennium",
+        club: "Game Development Department",
+        role: "Striker / Attacker",
+        attackType: "Mystic",
+        defenseType: "Special",
+        weapon: "Railgun (Sword of Light)",
+        description: "Gadis robot misterius yang ditemukan di reruntuhan. Dia mempelajari dunia luar melalui video game RPG dan menganggap dirinya sebagai Hero.",
+        color: "#a78bfa"
+      }
+    ];
+
+    // SVG Generator untuk Avatar Karakter
+    function createSvgAvatar(name, color) {
+      const initial = name.split(" ").pop()[0] || "S";
+      return `
+        <svg class="avatar-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="50" fill="${color}" />
+          <circle cx="50" cy="35" r="20" fill="#ffffff" opacity="0.9" />
+          <path d="M 20 85 C 20 60, 80 60, 80 85 Z" fill="#ffffff" opacity="0.9" />
+          <text x="50" y="42" font-size="18" font-weight="bold" fill="${color}" text-anchor="middle" font-family="sans-serif">${initial}</text>
+        </svg>
+      `;
+    }
+
+    // Render Cards
+    const grid = document.getElementById('studentGrid');
+    
+    function renderStudents(items) {
+      grid.innerHTML = '';
+      if(items.length === 0) {
+        grid.innerHTML = `<p style="color: #fff; grid-column: 1/-1; text-align: center; padding: 2rem;">Data murid tidak ditemukan.</p>`;
+        return;
+      }
+
+      items.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => openModal(s);
+
+        const attackClass = `badge-${s.attackType.toLowerCase()}`;
+
+        card.innerHTML = `
+          <div class="card-header">
+            <span class="school-badge">${s.school}</span>
+            ${createSvgAvatar(s.name, s.color)}
+          </div>
+          <div class="card-body">
+            <div class="student-name">${s.name}</div>
+            <div class="student-club">${s.club}</div>
+            <div class="badges">
+              <span class="badge ${attackClass}">${s.attackType}</span>
+              <span class="badge badge-role">${s.role.split('/')[0]}</span>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // Filter & Search Functionality
+    let currentSchool = 'all';
+    let searchQuery = '';
+
+    function filterData() {
+      let filtered = students.filter(s => {
+        const matchSchool = currentSchool === 'all' || s.school.toLowerCase() === currentSchool.toLowerCase();
+        const matchSearch = s.name.toLowerCase().includes(searchQuery) || 
+                            s.school.toLowerCase().includes(searchQuery) ||
+                            s.club.toLowerCase().includes(searchQuery);
+        return matchSchool && matchSearch;
+      });
+      renderStudents(filtered);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      searchQuery = e.target.value.toLowerCase();
+      filterData();
+    });
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentSchool = e.target.dataset.filter;
+        filterData();
+      });
+    });
+
+    // Modal Handlers
+    const modal = document.getElementById('modalOverlay');
+    
+    function openModal(student) {
+      document.getElementById('modalAvatar').innerHTML = createSvgAvatar(student.name, student.color);
+      document.getElementById('modalName').innerText = student.name;
+      document.getElementById('modalSchoolClub').innerText = `${student.school} — ${student.club}`;
+      document.getElementById('modalRole').innerText = student.role;
+      document.getElementById('modalAttack').innerText = student.attackType;
+      document.getElementById('modalDefense').innerText = student.defenseType;
+      document.getElementById('modalWeapon').innerText = student.weapon;
+      document.getElementById('modalDesc').innerText = student.description;
+      
+      modal.style.display = 'flex';
+    }
+
+    document.getElementById('closeModal').onclick = () => modal.style.display = 'none';
+    modal.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
+
+    // Initial Render
+    renderStudents(students);
+  </script>
+</body>
+</html>
